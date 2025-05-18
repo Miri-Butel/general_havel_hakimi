@@ -1,0 +1,54 @@
+import random
+from collections import defaultdict
+
+def generate_graph_with_perfect_matching(n, p=0.1):
+    """
+    Generate a random undirected graph with n vertices (even), 
+    containing a perfect matching and additional edges with probability p.
+    Returns a tuple: (edges, matching).
+    """
+    if n % 2 != 0:
+        raise ValueError("n must be even for a perfect matching.")
+    vertices = list(range(n))
+    random.shuffle(vertices)
+    matching = [(vertices[i], vertices[i+1]) for i in range(0, n, 2)]
+    edge_set = set(tuple(sorted(edge)) for edge in matching)
+    # Add other possible edges with probability p
+    for i in range(n):
+        for j in range(i+1, n):
+            edge = (i, j)
+            if edge not in edge_set and random.random() < p:
+                edge_set.add(edge)
+    edges = list(edge_set)
+    return edges, matching
+
+def degree_sequence(graph):
+    """
+    Given a list of edges, return the degree sequence (sorted).
+    """
+    degree_count = defaultdict(int)
+    for u, v in graph:
+        degree_count[u] += 1
+        degree_count[v] += 1
+    degrees = list(degree_count.values())
+    return sorted(degrees, reverse=True)
+
+def degree_sequence_repr(degrees):
+    """
+    Given a sorted degree sequence, returns a string like "[d] * r" for each group of repeated degrees.
+    Example: [4, 4, 3, 3, 3, 2] -> "[4] *2, [3] *3, [2] *1"
+    """
+    if not degrees:
+        return ""
+    result = []
+    prev = degrees[0]
+    count = 1
+    for d in degrees[1:]:
+        if d == prev:
+            count += 1
+        else:
+            result.append(f"[{prev}] *{count}")
+            prev = d
+            count = 1
+    result.append(f"[{prev}] *{count}")
+    return ", ".join(result)
