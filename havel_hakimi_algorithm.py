@@ -1,5 +1,4 @@
 from bins import Bins
-from pending_nodes import PendingNodes
 from strategies.max_degree_strategy import MaxDegreeStrategy
 
 def havel_hakimi_general(degrees, strategy=None):
@@ -22,7 +21,6 @@ def havel_hakimi_general(degrees, strategy=None):
             bins.add_node(degree, vertex_id)
     
     edges = []
-    pending = PendingNodes()
 
     while bins.size > 0:
         pivot_degree, pivot_vertex = strategy.choose_pivot(bins)
@@ -30,21 +28,9 @@ def havel_hakimi_general(degrees, strategy=None):
         if pivot_degree > bins.size:
             return False, []
         
-        pending.clear()
+        neighbors = strategy.choose_and_add_neighbors(bins, pivot_degree, pivot_vertex)
         
-        for _ in range(pivot_degree):
-            if bins.size == 0:
-                return False, []
-            
-            neighbor_degree = bins.get_max_degree()
-            neighbor_vertex = strategy.choose_neighbor(bins, neighbor_degree)
-            
-            edges.append((pivot_vertex, neighbor_vertex))
-            
-            new_degree = neighbor_degree - 1
-            if new_degree > 0:
-                pending.add(new_degree, neighbor_vertex)
-        
-        pending.insert_into_bins(bins)
+        for neighbor in neighbors:
+            edges.append((pivot_vertex, neighbor))
     
     return True, edges

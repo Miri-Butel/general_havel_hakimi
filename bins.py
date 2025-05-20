@@ -40,6 +40,23 @@ class Bins:
             del self.bins[degree]
         self.size -= 1
         return node_id
+    
+    def pop_node_by_id(self, node_id, degree):
+        """
+        Pop a node by its ID from the bin corresponding to its degree.
+
+        Args:
+            node_id (int): The ID of the node.
+            degree (int): The degree of the bin to pop from.
+
+        Returns:
+            int: The ID of the popped node.
+        """
+        self.bins[degree].remove(node_id)
+        if not self.bins[degree]:
+            del self.bins[degree]
+        self.size -= 1
+        return node_id
 
     def get_max_degree(self):
         """
