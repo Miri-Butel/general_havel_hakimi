@@ -1,0 +1,107 @@
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+from collections import Counter
+from datetime import datetime
+
+from graph_utils import degree_sequence, degree_sequence_repr, generate_graph_with_perfect_matching
+from havel_hakimi_algorithm import havel_hakimi_general
+from graph_visualization import visualize_graph
+from strategies.matching_aware_strategy import MatchingAwareStrategy
+
+def ensure_dir(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+def save_figure(original_edges, matching, hh_edges, hh_matching, n, p, round_idx, save_dir, deg_seq_str):
+    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+    fig.suptitle(f"n={n}, p={p:.2f}, round={round_idx}, deg_seq=({deg_seq_str})", fontsize=14)
+    visualize_graph(original_edges, highlight_edges=matching, ax=axes[0],
+                    title=f"Original Graph\nPerfect Matching size: {len(matching) if matching else 0}")
+    visualize_graph(hh_edges, highlight_edges=hh_matching, ax=axes[1],
+                    title=f"HH Algorithm\nMatching size: {len(hh_matching) if hh_matching else 0}")
+    fig.tight_layout()
+    fig.savefig(os.path.join(save_dir, f"graph_n{n}_p{p:.2f}_round{round_idx}.png"))
+    plt.close(fig)
+
+def run_rounds_for_np(n, p, rounds, save_every, save_dir, degseq_log_filename):
+    matching_sizes = []
+    matching_size_counter = Counter()
+    degseq_log_path = os.path.join(save_dir, degseq_log_filename)
+    with open(degseq_log_path, "w") as degseq_log:
+        degseq_log.write("n,p,round,degree_sequence,matching_size\n")
+        for round_idx in range(1, rounds + 1):
+            strategy = MatchingAwareStrategy()
+            original_edges, matching = generate_graph_with_perfect_matching(n, p)
+            degrees = degree_sequence(original_edges)
+            deg_seq_str = degree_sequence_repr(degrees)
+            print(f"degree sequence: {deg_seq_str}")
+            is_graphical, hh_edges = havel_hakimi_general(degrees, strategy=strategy)
+            hh_matching = strategy.get_matching_edges()
+            msize = len(hh_matching) if hh_matching else 0
+            matching_sizes.append(msize)
+            matching_size_counter[msize] += 1
+
+            degseq_log.write(f"{n},{p:.4f},{round_idx},\"{deg_seq_str}\",{msize}\n")
+
+            if round_idx % save_every == 0:
+                save_figure(
+                    original_edges, matching,
+                    hh_edges if is_graphical else original_edges,
+                    hh_matching,
+                    n, p, round_idx, save_dir, deg_seq_str
+                )
+    return matching_sizes, matching_size_counter
+
+def save_statistics(n, p, rounds, matching_sizes, matching_size_counter, save_dir, log_file):
+    avg = np.mean(matching_sizes)
+    median = np.median(matching_sizes)
+    min_val = np.min(matching_sizes)
+    max_val = np.max(matching_sizes)
+    std_val = np.std(matching_sizes)
+    # Sort distribution by matching size (key) descending
+    sorted_dist = ', '.join(f'{k}: {v}' for k, v in sorted(matching_size_counter.items(), reverse=True))
+    stats_str = (
+        f"n={n}, p={p:.2f} | rounds={rounds}\n"
+        f"  avg matching size: {avg:.2f}\n"
+        f"  median: {median}\n"
+        f"  min: {min_val}\n"
+        f"  max: {max_val}\n"
+        f"  std: {std_val:.2f}\n"
+        f"  distribution: {{{sorted_dist}}}\n"
+    )
+    print(stats_str)
+    log_file.write(stats_str + "\n")
+
+    dist_path = os.path.join(save_dir, "matching_size_distribution.csv")
+    with open(dist_path, "w") as f:
+        f.write("matching_size,count\n")
+        for size, count in sorted(matching_size_counter.items(), reverse=True):
+            f.write(f"{size},{count}\n")
+
+def run_experiment(
+    n_range=range(4, 101, 6),
+    p_range=np.linspace(0.05, 0.2, 4),
+    rounds=50,
+    save_every=10,
+    base_dir="experiment_results",
+    log_filename="experiment_log.txt",
+    degseq_log_filename="degseq_matching_log.txt"
+):
+    log_path = os.path.join(base_dir, log_filename)
+    ensure_dir(base_dir)
+    with open(log_path, "w") as log_file:
+        log_file.write(f"Experiment started at {datetime.now()}\n\n")
+        log_file.write(f"n_range: {list(n_range)}\np_range: {list(p_range)}\nrounds: {rounds}\nsave_every: {save_every}\n\n")
+
+        for n in n_range:
+            for p in p_range:
+                save_dir = os.path.join(base_dir, f"n_{n}", f"p_{p:.2f}")
+                ensure_dir(save_dir)
+                matching_sizes, matching_size_counter = run_rounds_for_np(
+                    n, p, rounds, save_every, save_dir, degseq_log_filename
+                )
+                save_statistics(n, p, rounds, matching_sizes, matching_size_counter, save_dir, log_file)
+
+if __name__ == "__main__":
+    run_experiment()
