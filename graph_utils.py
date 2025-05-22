@@ -1,4 +1,5 @@
 import random
+import re
 from collections import defaultdict
 
 def generate_graph_with_perfect_matching(n, p=0.1):
@@ -52,3 +53,31 @@ def degree_sequence_repr(degrees):
             count = 1
     result.append(f"[{prev}] *{count}")
     return ", ".join(result)
+
+def parse_degree_sequence(input_str):
+    """
+    Parse a degree sequence from a string that can be either:
+    - Comma-separated list of integers (e.g., "3,3,2,2,2,1")
+    - Python-style list expression (e.g., "[3]*2 + [2]*3 + [1]")
+    """
+    # Check if the input is in Python-style list expression format
+    if '[' in input_str and '*' in input_str:
+        # Create a safe evaluation of the expression
+        # The pattern captures: [number], followed by * and another number, or + operator
+        result = []
+        pattern = r'\[(\d+)\]\s*\*\s*(\d+)'
+        
+        # Split by + sign
+        parts = input_str.split('+')
+        for part in parts:
+            part = part.strip()
+            match = re.match(pattern, part)
+            if match:
+                value = int(match.group(1))
+                count = int(match.group(2))
+                result.extend([value] * count)
+        
+        return result
+    else:
+        # Handle standard comma-separated format
+        return [int(x) for x in input_str.split(",")]
