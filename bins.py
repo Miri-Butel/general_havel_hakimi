@@ -66,11 +66,20 @@ class Bins:
 
     def __iter__(self):
         """
-        Create an iterator to iterate over nodes in the bins.
+        Create an iterator to iterate over nodes in the bins without mutating.
 
         Yields:
             tuple: A tuple (degree, node_id) for each node in the bins.
         """
         for degree in sorted(self.bins.keys(), reverse=True):
-            while self.bins[degree]:
-                yield degree, self.pop_node(degree)
+            for node_id in self.bins[degree]:
+                yield degree, node_id
+
+    def iter_degrees_descending(self):
+        """
+        Returns an iterator that yields degrees in descending order.
+        
+        Returns:
+            iterator: An iterator over degrees in descending order
+        """
+        return iter(sorted(self.bins.keys(), reverse=True))

@@ -1,12 +1,14 @@
 from typing import Dict, List, Tuple
 from bins import Bins
 from hh_strategy import HHStrategy
+from pending_nodes import PendingNodes
 
 class MatchingAwareStrategy(HHStrategy):
     def __init__(self):
         self.matching_nodes = set()
         self.matching_edges = list()
         self.current_top_nodes: Dict[int, int] = dict()
+        self.pending = PendingNodes()
 
     def choose_neighbor(self, bins: Bins, neighbor_degree: int):
         pass
@@ -27,20 +29,19 @@ class MatchingAwareStrategy(HHStrategy):
         # Commented out lines are for choosing the node with the minimum degree (seems to give worse results)
         # best_min_degree_node = None
         # best_min_degree_top_nodes = None
-        for degree in bins.bins.keys():
-            for node_id in bins.bins[degree]:
-                if node_id in self.matching_nodes:
-                    continue
-                # Check if there is a potential neighbor not in matching among top degree nodes (excluding node_id)
-                top_nodes = self._get_top_nodes_for_degree(bins, degree, node_id)
-                if any(nid2 not in self.matching_nodes for nid2 in top_nodes.keys()):
-                    # If there is a potential neighbor not in matching, return the node_id
-                    self.current_top_nodes = top_nodes
-                    bins.pop_node_by_id(node_id, degree)
-                    return (degree, node_id)
-                    # if best_min_degree_node is None or degree < best_min_degree_node[1]:
-                    #     best_min_degree_node = (node_id, degree)
-                    #     best_min_degree_top_nodes = top_nodes
+        for degree, node_id in bins:
+            if node_id in self.matching_nodes:
+                continue
+            # Check if there is a potential neighbor not in matching among top degree nodes (excluding node_id)
+            top_nodes = self._get_top_nodes_for_degree(bins, degree, node_id)
+            if any(nid2 not in self.matching_nodes for nid2 in top_nodes.keys()):
+                # If there is a potential neighbor not in matching, return the node_id
+                self.current_top_nodes = top_nodes
+                bins.pop_node_by_id(node_id, degree)
+                return (degree, node_id)
+                # if best_min_degree_node is None or degree < best_min_degree_node[1]:
+                #     best_min_degree_node = (node_id, degree)
+                #     best_min_degree_top_nodes = top_nodes
         # if best_min_degree_node is None or best_min_degree_top_nodes is None:
         #     best_min_degree_node = (node_id, degree)
         #     best_min_degree_top_nodes = self._get_top_nodes_for_degree(bins, degree, node_id)
@@ -66,6 +67,7 @@ class MatchingAwareStrategy(HHStrategy):
         Returns:
             List[int]: List of neighbor node ids.
         """
+        self.pending.clear()
         neighbors = []
         is_pivot_unmatched = pivot_vertex not in self.matching_nodes
         
@@ -79,6 +81,7 @@ class MatchingAwareStrategy(HHStrategy):
         self._update_matching(min_unmatched_node, pivot_vertex, is_pivot_unmatched)
         
         assert len(neighbors) == pivot_degree, f"Not enough neighbors found for pivot {pivot_vertex} with degree {pivot_degree}."
+        self.pending.insert_into_bins(bins)
         return neighbors
     
     def _prepare_sorted_nodes(self):
@@ -141,7 +144,7 @@ class MatchingAwareStrategy(HHStrategy):
             bins.pop_node_by_id(node_id, degree)
             new_degree = degree - 1
             if new_degree > 0:
-                bins.add_node(new_degree, node_id, index=0)
+                self.pending.add(new_degree, node_id)
     
     def _update_matching(self, min_unmatched_node, pivot_vertex, is_pivot_unmatched):
         """
@@ -177,7 +180,7 @@ class MatchingAwareStrategy(HHStrategy):
             dict: Dictionary mapping node ids to their degrees.
         """
         top_nodes = dict()
-        for top_degree in sorted(bins.bins.keys(), reverse=True):
+        for top_degree in bins.iter_degrees_descending():
             for nid2 in bins.bins[top_degree]:
                 if nid2 != node_id:
                     top_nodes[nid2] = top_degree

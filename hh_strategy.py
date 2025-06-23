@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-
 from bins import Bins
 from pending_nodes import PendingNodes
 
@@ -8,16 +7,16 @@ class HHStrategy(ABC):
         self.pending = PendingNodes()
 
     @abstractmethod
-    def choose_pivot(self, bins):
+    def choose_pivot(self, bins: Bins):
         """Return (pivot_degree, pivot_node)"""
         pass
 
     @abstractmethod
-    def choose_neighbor(self, bins, neighbor_degree):
+    def choose_neighbor(self, bins: Bins, neighbor_degree):
         """Return neighbor_node given degree"""
         pass
 
-    def choose_and_add_neighbors(self, bins, pivot_degree, pivot_node):
+    def choose_and_add_neighbors(self, bins: Bins, pivot_degree, pivot_node):
         """Return a list of neighbors to add"""
         neighbors = []
         self.pending.clear()

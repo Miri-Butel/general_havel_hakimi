@@ -4,6 +4,7 @@ from havel_hakimi_algorithm import havel_hakimi_general
 from graph_visualization import visualize_graph
 from strategies.max_degree_strategy import MaxDegreeStrategy
 from strategies.min_degree_strategy import MinDegreeStrategy
+from strategies.naive_matching_aware_strategy import NaiveMatchingAwareStrategy
 from strategies.random_strategy import RandomStrategy
 from strategies.matching_aware_strategy import MatchingAwareStrategy
 import matplotlib.pyplot as plt
@@ -18,6 +19,7 @@ STRATEGY_MAP = {
     "min": MinDegreeStrategy,
     "random": RandomStrategy,
     "matching": MatchingAwareStrategy,
+    "naive_matching": NaiveMatchingAwareStrategy
 }
 
 def parse_args():
@@ -124,4 +126,7 @@ def main():
     plt.show()
 
 if __name__ == "__main__":
+    # set random seed for reproducibility
+    # import random
+    # random.seed(42)
     main()

@@ -8,6 +8,7 @@ from graph_utils import degree_sequence, degree_sequence_repr, generate_graph_wi
 from havel_hakimi_algorithm import havel_hakimi_general
 from graph_visualization import visualize_graph
 from strategies.matching_aware_strategy import MatchingAwareStrategy
+from strategies.naive_matching_aware_strategy import NaiveMatchingAwareStrategy
 
 def ensure_dir(path):
     if not os.path.exists(path):
@@ -24,23 +25,28 @@ def save_figure(original_edges, matching, hh_edges, hh_matching, n, p, round_idx
     fig.savefig(os.path.join(save_dir, f"graph_n{n}_p{p:.2f}_round{round_idx}.png"))
     plt.close(fig)
 
-def run_rounds_for_np(n, p, rounds, save_every, save_dir, degseq_log_filename):
+def run_rounds_for_np(StrategyClass, n, p, rounds, save_every, save_dir,
+                      degseq_log_filename, edges_log_file):
     matching_sizes = []
     matching_size_counter = Counter()
     degseq_log_path = os.path.join(save_dir, degseq_log_filename)
     with open(degseq_log_path, "w") as degseq_log:
         degseq_log.write("n,p,round,degree_sequence,matching_size\n")
         for round_idx in range(1, rounds + 1):
-            strategy = MatchingAwareStrategy()
+            strategy = StrategyClass()
             original_edges, matching = generate_graph_with_perfect_matching(n, p)
             degrees = degree_sequence(original_edges)
             deg_seq_str = degree_sequence_repr(degrees)
-            print(f"degree sequence: {deg_seq_str}")
+            # print(f"degree sequence: {deg_seq_str}")
             is_graphical, hh_edges = havel_hakimi_general(degrees, strategy=strategy)
             hh_matching = strategy.get_matching_edges()
             msize = len(hh_matching) if hh_matching else 0
             matching_sizes.append(msize)
             matching_size_counter[msize] += 1
+
+            edges_log_file.write(f"Round {round_idx}: n={n}, p={p:.4f}, degree_sequence={deg_seq_str}\n")
+            edges_log_file.write(f"HH edges: {sorted(original_edges)}\n")
+            edges_log_file.write(f"HH matching: {sorted(hh_matching)}\n")
 
             degseq_log.write(f"{n},{p:.4f},{round_idx},\"{deg_seq_str}\",{msize}\n")
 
@@ -70,7 +76,7 @@ def save_statistics(n, p, rounds, matching_sizes, matching_size_counter, save_di
         f"  std: {std_val:.2f}\n"
         f"  distribution: {{{sorted_dist}}}\n"
     )
-    print(stats_str)
+    # print(stats_str)
     log_file.write(stats_str + "\n")
 
     dist_path = os.path.join(save_dir, "matching_size_distribution.csv")
@@ -86,22 +92,38 @@ def run_experiment(
     save_every=10,
     base_dir="experiment_results",
     log_filename="experiment_log.txt",
-    degseq_log_filename="degseq_matching_log.txt"
+    edges_log_filename="edges_log.txt",
+    degseq_log_filename="degseq_matching_log.txt",
+    use_naive_strategy=False
 ):
+    StrategyClass = NaiveMatchingAwareStrategy if use_naive_strategy else MatchingAwareStrategy
+    if use_naive_strategy:
+        log_filename = "experiment_log_naive.txt"
+        edges_log_filename = "edges_log_naive.txt"
+
     log_path = os.path.join(base_dir, log_filename)
     ensure_dir(base_dir)
     with open(log_path, "w") as log_file:
         log_file.write(f"Experiment started at {datetime.now()}\n\n")
         log_file.write(f"n_range: {list(n_range)}\np_range: {list(p_range)}\nrounds: {rounds}\nsave_every: {save_every}\n\n")
 
-        for n in n_range:
-            for p in p_range:
-                save_dir = os.path.join(base_dir, f"n_{n}", f"p_{p:.2f}")
-                ensure_dir(save_dir)
-                matching_sizes, matching_size_counter = run_rounds_for_np(
-                    n, p, rounds, save_every, save_dir, degseq_log_filename
-                )
-                save_statistics(n, p, rounds, matching_sizes, matching_size_counter, save_dir, log_file)
+        with open(os.path.join(base_dir, edges_log_filename), "w") as edges_log:
+            for n in n_range:
+                for p in p_range:
+                    save_dir = os.path.join(base_dir, f"n_{n}", f"p_{p:.2f}")
+                    ensure_dir(save_dir)
+                    matching_sizes, matching_size_counter = run_rounds_for_np(
+                        StrategyClass, n, p, rounds, save_every, save_dir, 
+                        degseq_log_filename, edges_log)
+                    save_statistics(n, p, rounds, matching_sizes, matching_size_counter, save_dir, log_file)
+
 
 if __name__ == "__main__":
-    run_experiment()
+    # set seed for reproducibility
+    SEED = 42
+    import random
+    random.seed(SEED)
+    np.random.seed(SEED)
+
+    use_naive_strategy = False  # Set to True to use NaiveMatchingAwareStrategy
+    run_experiment(use_naive_strategy=use_naive_strategy)
