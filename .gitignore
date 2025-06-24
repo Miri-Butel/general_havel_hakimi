@@ -1,5 +1,8 @@
 /__pycache__/*
 */__pycache__/*
 /venv/*
-experiment_results/*
 *.DS_Store
+
+# log files and directories
+experiment_results/*
+regular_graph_experiment_results/*
