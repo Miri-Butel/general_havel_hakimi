@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from collections import Counter
 from datetime import datetime
 
-from graph_utils import degree_sequence, degree_sequence_repr, generate_graph_with_perfect_matching
+from graph_utils import check_legal_matching, degree_sequence, degree_sequence_repr, generate_graph_with_perfect_matching
 from havel_hakimi_algorithm import havel_hakimi_general
 from graph_visualization import visualize_graph
 from strategies.matching_aware_strategy import MatchingAwareStrategy
@@ -43,6 +43,8 @@ def run_rounds_for_np(StrategyClass, n, p, rounds, save_every, save_dir,
             msize = len(hh_matching) if hh_matching else 0
             matching_sizes.append(msize)
             matching_size_counter[msize] += 1
+            if use_naive_strategy:
+                assert check_legal_matching(hh_matching), "Naive strategy produced an illegal matching!"
 
             edges_log_file.write(f"Round {round_idx}: n={n}, p={p:.4f}, degree_sequence={deg_seq_str}\n")
             edges_log_file.write(f"HH edges: {sorted(original_edges)}\n")
@@ -86,6 +88,10 @@ def save_statistics(n, p, rounds, matching_sizes, matching_size_counter, save_di
             f.write(f"{size},{count}\n")
 
 def run_experiment(
+    # n_range=range(4, 251, 6),
+    # p_range=np.linspace(0.01, 0.26, 5),
+    # rounds=75,
+    # save_every=15,
     n_range=range(4, 101, 6),
     p_range=np.linspace(0.05, 0.2, 4),
     rounds=50,

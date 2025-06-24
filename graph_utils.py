@@ -1,3 +1,4 @@
+from typing import List, Tuple
 import random
 import re
 from collections import defaultdict
@@ -81,3 +82,21 @@ def parse_degree_sequence(input_str):
     else:
         # Handle standard comma-separated format
         return [int(x) for x in input_str.split(",")]
+
+
+def check_legal_matching(matching: List[Tuple[int, int]]):
+    """
+    Check if the given matching is legal, meaning each vertex appears only once.
+    Args:
+        matching (List[Tuple[int, int]]): List of edges representing the matching.
+    Returns:
+        bool: True if the matching is legal, False otherwise.
+    """
+    seen = set()
+    for u, v in matching:
+        if u in seen or v in seen:
+            return False
+        seen.add(u)
+        seen.add(v)
+    return True
+    
