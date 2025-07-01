@@ -23,11 +23,25 @@ class NaiveMatchingAwareStrategy(HHStrategy):
         Returns:
             Tuple[int, int]: The degree and node id of the chosen pivot.
         """
+        # Finds a pivot node that is not in the matching and has at least one unmatched neighbor
         for degree, node_id in bins:
             if node_id not in self.matching_nodes:
                 top_neighbors = self.get_top_neighbors(bins, node_id, degree)
                 if any(not neighbor[-1] for neighbor in top_neighbors):
                     # If there is at least one unmatched neighbor, we can use this node as a pivot
+                    # Remove the node from bins and return it
+                    bins.pop_node_by_id(node_id, degree)
+                    return degree, node_id
+        # Finds a pivot node that is in the matching, and has at least "degree" unmatched neighbors
+        for degree, node_id in bins:
+            if node_id in self.matching_nodes:
+                top_neighbors = self.get_top_neighbors(bins, node_id, degree)
+                min_neighbor_degree = min(neighbor[1] for neighbor in top_neighbors)
+                high_deg_neighbor = [neighbor for neighbor in top_neighbors if neighbor[1] > min_neighbor_degree]
+                min_deg_matched_neighbors = [neighbor for neighbor in top_neighbors if neighbor[1] == min_neighbor_degree and neighbor[-1]]
+                necessary_min_deg_count = degree - len(high_deg_neighbor)
+                if len(min_deg_matched_neighbors) >= necessary_min_deg_count and all(neighbor[-1] for neighbor in high_deg_neighbor):
+                    # If there are enough matched neighbors, we can use this node as a pivot
                     # Remove the node from bins and return it
                     bins.pop_node_by_id(node_id, degree)
                     return degree, node_id
