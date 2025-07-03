@@ -1,4 +1,6 @@
 import argparse
+
+from rustworkx import max_weight_matching, undirected_gnp_random_graph
 from graph_utils import degree_sequence, degree_sequence_repr, generate_graph_with_perfect_matching, parse_degree_sequence
 from havel_hakimi_algorithm import havel_hakimi_general
 from graph_visualization import visualize_graph
@@ -40,7 +42,10 @@ def get_degree_sequence(args):
         return degrees, None, None
     elif args.n:
         n = args.n
-        original_edges, matching = generate_graph_with_perfect_matching(n, args.p)
+        # original_edges, matching = generate_graph_with_perfect_matching(n, args.p)
+        graph = undirected_gnp_random_graph(n, args.p)
+        matching = max_weight_matching(graph, max_cardinality=True)
+        original_edges = graph.edge_list()
         degrees = degree_sequence(original_edges)
         return degrees, original_edges, matching
     else:
@@ -130,3 +135,19 @@ if __name__ == "__main__":
     # import random
     # random.seed(42)
     main()
+
+
+# Uncomment for checking runtime of functions
+# if __name__ == "__main__":
+#     import cProfile
+#     import pstats
+
+#     with cProfile.Profile() as pr:
+#         main()  # or your entry function
+
+#     stats = pstats.Stats(pr)
+#     stats.strip_dirs()
+#     stats.sort_stats("cumulative")  # or "time"
+
+#     # Only show your module, e.g. anything inside "my_project/"
+#     stats.print_stats("strategy")  # adjust to match your file path

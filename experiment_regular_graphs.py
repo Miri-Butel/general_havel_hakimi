@@ -38,6 +38,9 @@ def run_regular_graph_experiment(
 
                 log_file.write(f"{d},{n},{matching_size},{is_perfect_matching}\n")
 
+        log_file.write(f"\nRegular Graph Experiment ended at {datetime.now()}")
+
+
 if __name__ == "__main__":
     # SEED = 42
     # import random

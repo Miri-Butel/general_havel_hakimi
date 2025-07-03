@@ -1,4 +1,6 @@
 import re
+import os
+import glob
 
 
 def find_approximation_of_experiments(input_file, output_file):
@@ -22,20 +24,30 @@ def find_approximation_of_experiments(input_file, output_file):
                 outfile.write(f"n={n}, p={p}, min={min_value}, approx_ratio={approx_ratio:.4f}\n")
                 previous_line = None  # Reset after processing
 
-        # Write the minimum approx_ratio at the end of the file
-        if min_approx_ratio != 1:  # Check if the minimum was updated
-            outfile.write(f"\nMinimum approx_ratio: {min_approx_ratio:.4f}\n")
+        outfile.write(f"\nMinimum approx_ratio: {min_approx_ratio:.4f}\n")
 
 
 if __name__ == "__main__":
-    import argparse
+    # import argparse
     
-    parser = argparse.ArgumentParser(description="Find minimum approximation ratio from experiment logs.")
-    parser.add_argument('--input_filepath', type=str, help="Path to the input log file.", default="experiment_results/experiment_log.txt")
-    parser.add_argument('--output_filepath', type=str, help="Path to the output file for results.", default="experiment_results/experiments_approx_ratios_log.txt")
+    # parser = argparse.ArgumentParser(description="Find minimum approximation ratio from experiment logs.")
+    # parser.add_argument('--input_filepath', type=str, help="Path to the input log file.", default="experiment_results/experiment_log.txt")
+    # parser.add_argument('--output_filepath', type=str, help="Path to the output file for results.", default="experiment_results/experiments_approx_ratios_log.txt")
     
-    args = parser.parse_args()
+    # args = parser.parse_args()
     
-    input_filepath = args.input_filepath
-    output_filepath = args.output_filepath
-    find_approximation_of_experiments(input_filepath, output_filepath)
+    # input_filepath = args.input_filepath
+    # output_filepath = args.output_filepath
+    # find_approximation_of_experiments(input_filepath, output_filepath)
+
+    experiment_dir = "experiment_results"  # Directory for both input and output files
+
+    # Find all files matching the pattern "experiment_log_s*.txt"
+    log_files = glob.glob(os.path.join(experiment_dir, "experiment_log_*s*.txt"))
+    
+    for log_file in log_files:
+        base_name = os.path.basename(log_file).replace("experiment_log", "experiments_approx_ratios")
+        output_file = os.path.join(experiment_dir, base_name)
+        
+        print(f"Processing {log_file} -> {output_file}")
+        find_approximation_of_experiments(log_file, output_file)
