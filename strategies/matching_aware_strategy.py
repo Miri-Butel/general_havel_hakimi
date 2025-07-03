@@ -29,16 +29,9 @@ class MatchingAwareStrategy(HHStrategy):
         # Commented out lines are for choosing the node with the minimum degree (seems to give worse results)
         # best_min_degree_node = None
         # best_min_degree_top_nodes = None
-        first_matched_relevant_node = None
-        first_relevant_top_nodes = None
         for degree, node_id in bins:
             top_nodes = self._get_top_nodes_for_degree(bins, degree, node_id)
-            matched_flag, unmatched_flag = self.check_node_neighbors_for_pivot(top_nodes, degree)
-            if (node_id in self.matching_nodes) and matched_flag and first_matched_relevant_node is None:
-                # If we find a matched node with matched neighbors, we save it as a potential pivot
-                first_matched_relevant_node = (node_id, degree)
-                first_relevant_top_nodes = top_nodes
-            if (node_id not in self.matching_nodes) and unmatched_flag:
+            if (node_id not in self.matching_nodes) and self.check_neighbors_for_unmatched_pivot(top_nodes):
                 # If we find an unmatched node with an unmatched neighbor, we can use it as a pivot
                 # Remove the node from bins and return it
                 self.current_top_nodes = top_nodes
@@ -53,56 +46,50 @@ class MatchingAwareStrategy(HHStrategy):
         # node_id, degree = best_min_degree_node
         # self.current_top_nodes = best_min_degree_top_nodes
         # print("No unmatched pivot found! returning", node_id, "with degree", degree)
-        if first_matched_relevant_node is not None and first_relevant_top_nodes is not None:
-            node_id, degree = first_matched_relevant_node
-            self.current_top_nodes = first_relevant_top_nodes
-            # Remove the node from bins and return it
-            bins.pop_node_by_id(node_id, degree)
-            return (degree, node_id)
+        
+        for degree, node_id in bins:
+            top_nodes = self._get_top_nodes_for_degree(bins, degree, node_id)
+            if (node_id in self.matching_nodes) and self.check_neighbors_for_matched_pivot(top_nodes, degree):
+                # If we find a matched node with enough matched neighbors, we can use it as a pivot
+                # Remove the node from bins and return it
+                self.current_top_nodes = top_nodes
+                bins.pop_node_by_id(node_id, degree)
+                return (degree, node_id)
         
         # If we reach here, we didn't find any unmatched pivot, so we return the last node considered
         self.current_top_nodes = self._get_top_nodes_for_degree(bins, degree, node_id)
         bins.pop_node_by_id(node_id, degree)
         return (degree, node_id)
     
-    def check_node_neighbors_for_pivot(self, top_nodes: Dict[int, int], degree: int) -> Tuple[bool, bool]:
+    def check_neighbors_for_unmatched_pivot(self, top_nodes: Dict[int, int]) -> bool:
         """
-        Check the neighbors of a node to decide if it can be a pivot, based on their degrees and matching status.
-        Args:
-            top_nodes (Dict[int, int]): The top nodes to consider, mapping node ids to their degrees.
-            degree (int): The degree of the node being checked.
-        Returns:
-            Tuple[bool, bool]: A tuple containing two flags:
-                - unmatched_flag: True if the node can be an unmatched pivot, False otherwise.
-                - matched_flag: True if the node can be a matched pivot, False otherwise.
+        Check if there are any unmatched neighbors in the top nodes.
         """
-        # Initialize flags
-        matched_flag = True
-        unmatched_flag = False
+        for neighbor_id in top_nodes.keys():
+            if neighbor_id not in self.matching_nodes:
+                return True
 
+        return False
+    
+    def check_neighbors_for_matched_pivot(self, top_nodes: Dict[int, int], degree: int) -> bool:
+        """
+        Check if the top nodes contain enough matched neighbors for the pivot node.
+        """
         min_deg_neighbor = min(top_nodes.values()) if top_nodes else 0
         high_deg_neighbors_count = 0
         min_deg_neighbors_matched_count = 0
 
-        # Check neighbors for conditions to be a pivot
         for neighbor_id in top_nodes.keys():
-            if neighbor_id not in self.matching_nodes:
-                # If there is an unmatched neighbor, we can potentially be a (unmatched) pivot
-                unmatched_flag = True
-
             deg = top_nodes[neighbor_id]
             if deg > min_deg_neighbor:
                 high_deg_neighbors_count += 1
                 if neighbor_id not in self.matching_nodes:
-                    # If there is a neighbor with a high degree not in the matching, cannot be a (matched) pivot
-                    matched_flag = False
+                    return False
             else:  # deg == min_deg_neighbor
                 if neighbor_id in self.matching_nodes:
                     min_deg_neighbors_matched_count += 1
 
-        matched_flag = matched_flag and (min_deg_neighbors_matched_count >= (degree - high_deg_neighbors_count))
-
-        return matched_flag, unmatched_flag
+        return min_deg_neighbors_matched_count >= (degree - high_deg_neighbors_count)
 
     def choose_and_add_neighbors(self, bins: Bins, pivot_degree: int, pivot_vertex: int):
         """
