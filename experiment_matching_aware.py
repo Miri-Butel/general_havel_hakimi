@@ -93,8 +93,8 @@ def run_experiment(
     # rounds=75,
     # save_every=15,
     n_range=range(4, 101, 2),
-    # p_range=np.linspace(0.02, 0.2, 5),
-    # p_range=np.linspace(0.03, 0.5, 4),
+    # p_range=np.linspace(0.002, 0.02, 5),
+    # p_range=np.linspace(0.3, 0.5, 4),
     rounds=50,
     save_every=10,
     base_dir="experiment_results",
@@ -132,7 +132,11 @@ def run_experiment(
 if __name__ == "__main__":
     # Generate 20 random seeds
     SEEDS = [random.randint(0, 10000) for _ in range(10)]
-    use_naive_strategy = True  # Set to True to use NaiveMatchingAwareStrategy
+    # SEEDS = [501, 1177, 1878, 2245, 2368, 3480, 5622, 5650, 6992, 8158]  #np.linspace(0.01, 0.26, 5)
+    # SEEDS = [563, 7170, 7102, 626, 4962, 4626, 1398, 3875, 5928, 7734]  #np.linspace(0.002, 0.02, 5)
+    # SEEDS = [2126, 660, 3540, 3732, 6126, 7426, 79, 4419, 5274, 8317]  #np.linspace(0.3, 0.5, 4)
+
+    use_naive_strategy = False  # Set to True to use NaiveMatchingAwareStrategy
 
     for seed in SEEDS:
         print(f"Running experiment with seed: {seed}")

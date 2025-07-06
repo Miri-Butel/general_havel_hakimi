@@ -111,7 +111,7 @@ class MatchingAwareStrategy(HHStrategy):
         is_pivot_unmatched = pivot_vertex not in self.matching_nodes
         
         # Prepare sorted nodes according to our priority rules
-        sorted_nodes, min_unmatched_node = self._prepare_sorted_nodes()
+        sorted_nodes, min_unmatched_node = self._prepare_sorted_nodes(pivot_vertex)
         
         # Process nodes in sorted order and select neighbors
         self._select_neighbors(sorted_nodes, neighbors, bins, pivot_degree)
@@ -123,7 +123,7 @@ class MatchingAwareStrategy(HHStrategy):
         self.pending.insert_into_bins(bins)
         return neighbors
     
-    def _prepare_sorted_nodes(self):
+    def _prepare_sorted_nodes(self, pivot_vertex: int):
         """
         Prepares and sorts nodes based on degree and matching status.
         Returns:
@@ -131,13 +131,14 @@ class MatchingAwareStrategy(HHStrategy):
             - the minimum degree unmatched node (node_is, degree, idx) if any.
         """        
         # Create list of all potential neighbors with their properties
+        is_pivot_unmatched = pivot_vertex not in self.matching_nodes
         all_nodes = []
         min_unmatched_node = None
         i = 0
         for node_id, degree in self.current_top_nodes.items():
             is_matched = node_id in self.matching_nodes
             all_nodes.append((node_id, degree, is_matched, False))  # Initialize all as not special
-            if not is_matched:
+            if is_pivot_unmatched and not is_matched:
                 if min_unmatched_node is None or degree < min_unmatched_node[1]:
                     min_unmatched_node = (node_id, degree, i)
             i += 1
