@@ -2,6 +2,8 @@ from typing import List, Tuple
 import random
 import re
 from collections import defaultdict
+from math import floor
+import numpy as np
 
 def generate_graph_with_perfect_matching(n, p=0.1):
     """
@@ -99,4 +101,87 @@ def check_legal_matching(matching: List[Tuple[int, int]]):
         seen.add(u)
         seen.add(v)
     return True
+
+
+# ***************************************************************************
+#  Implementation of Theorem 2.13 and Theorem 2.14 from the paper
+# "New results on graph matching from degree preserving growth" (4/12/24) 
+# ***************************************************************************
+
+def maximal_matching_lower_bound(d):
+    n = len(d)
+    min_val = float('inf')
+
+    for k in range(1, n + 1):
+        dk = d[k - 1]  # d_k
+        count = sum(1 for di in d if k <= di <= dk)
+        value = k - 1 + 0.5 * count
+        min_val = min(min_val, floor(value))
+
+    return min_val
+
+def td(delta: int, deg_seq: List[int]) -> Tuple[int, int]:
+    assert delta < len(deg_seq), "Delta must be a valid index of the degree sequence."
+    d_delta = deg_seq[delta]
+    larger_indices_count, smaller_indices_count = 0, 0
+    for i, d in enumerate(deg_seq):
+        if d == d_delta:
+            if i > delta:
+                larger_indices_count += 1
+            elif i < delta:
+                smaller_indices_count += 1
+    return larger_indices_count - smaller_indices_count, larger_indices_count
+
+def maximum_matching_size_numpy(deg_seq: List[int]) -> int:
+    """
+    Efficient numpy implementation of maximum_matching_size.
+    Calculate the potentially maximum matching size based on the degree sequence.
+    """
+    n = len(deg_seq)
+
+    if n == 0:
+        return 0
     
+    deg_array = np.array(deg_seq)
+    start_n = n if n % 2 == 0 else n - 1
+    
+    for delta in range(start_n, 1, -2):
+        h_delta = delta // 2
+        d_delta = deg_seq[delta - 1]
+        
+        # First condition check
+        first_flag = True
+        s1 = 0
+        for k in range(1, h_delta):
+            s1 += deg_seq[k - 1]
+            
+            # Vectorized computation of s2
+            indices = np.arange(k, n)
+            indicator = (indices <= (delta - 1)).astype(int)
+            s2 = np.sum(np.minimum(deg_array[k:] - indicator, k))
+            
+            first_flag = first_flag and (s1 <= k**2 + s2)
+            if not first_flag:
+                break
+        
+        if not first_flag:
+            continue
+        
+        # Second condition
+        t_delta, s2 = td(delta-1, deg_seq)
+        k = delta + t_delta
+        
+        # Vectorized computation of s1 and s3
+        s1 = np.sum(deg_array[:k])
+        if k < n:
+            indicator = (deg_array[k:] == d_delta).astype(int)
+            s3 = np.sum(np.minimum(deg_array[k:] - indicator, k))
+        else:
+            s3 = 0
+        
+        second_flag = (s1 + s2) <= (k**2 + s3)
+        
+        if second_flag:
+            return h_delta
+        
+    return 0

@@ -1,4 +1,5 @@
 import unittest
+from graph_utils import maximum_matching_size_numpy
 from havel_hakimi_algorithm import havel_hakimi_general
 from strategies.matching_aware_strategy import MatchingAwareStrategy
 from strategies.naive_matching_aware_strategy import NaiveMatchingAwareStrategy
@@ -50,6 +51,8 @@ class TestHavelHakimiAlgorithm(unittest.TestCase):
 
         # Optionally compare the edges produced by both strategies
         self.assertEqual(sorted(edges_matching), sorted(edges_naive), "The strategies produced NON identical edges.")
+
+        self.assertEqual(maximum_matching_size_numpy(degrees), len(degrees) // 2, "The maximum matching size should be equal to n/2 for a perfect matching.")
 
 if __name__ == "__main__":
     unittest.main()
