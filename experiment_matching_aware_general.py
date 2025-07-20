@@ -19,8 +19,9 @@ def run_rounds_for_np_general(StrategyClass, n, p, rounds, degseq_log, seed=None
     for round_idx in range(1, rounds + 1):
         strategy = StrategyClass()
         seed_i = seed + round_idx if seed is not None else None
-        original_graph = barabasi_albert_graph(n, p, seed=seed_i)
-        # original_graph = undirected_gnp_random_graph(n, p, seed=seed_i)
+        # The barabasi_albert_graph function has a bug affecting reproducibility, see https://github.com/Qiskit/rustworkx/issues/1480
+        # original_graph = barabasi_albert_graph(n, p, seed=seed_i)
+        original_graph = undirected_gnp_random_graph(n, p, seed=seed_i)
         original_edges = original_graph.edge_list()
         matching = max_weight_matching(original_graph, max_cardinality=True)
         degrees = degree_sequence(original_edges)
@@ -44,11 +45,12 @@ def run_rounds_for_np_general(StrategyClass, n, p, rounds, degseq_log, seed=None
 
 def run_experiment(
     # n_range=range(4, 251, 6),
-    p_range=np.linspace(0.01, 0.26, 5),
+    # p_range=np.linspace(0.01, 0.26, 5),
     # rounds=75,
     # save_every=15,
-    n_range=range(4, 101, 2),
-    # p_range=np.linspace(0.002, 0.02, 5),
+    # n_range=range(4, 101, 2),
+    n_range=range(102, 301, 6),
+    p_range=np.linspace(0.002, 0.02, 5),
     # p_range=np.linspace(0.3, 0.5, 4),
     rounds=50,
     base_dir="experiment_results/matching_aware_general",
@@ -83,6 +85,10 @@ if __name__ == "__main__":
     # SEEDS = [8423, 4576, 3081, 8468, 794]  # np.linspace(0.002, 0.02, 5)
     # SEEDS = [7298, 1237, 4039, 1549, 1637]  # np.linspace(0.3, 0.5, 4)
     # SEEDS = [4408, 1317, 586, 6992, 8536]  # for Barabasi-Albert graphs m=range(2, 11)
+    
+    # SEEDS = [4336, 525, 6891, 3070, 39]  # n_range=range(102, 301, 6), p_range=np.linspace(0.002, 0.02, 5)
+    # SEEDS = [4231, 9729, 7418, 4317, 4094]  # n_range=range(102, 301, 6), np.linspace(0.002, 0.02, 5)
+
     use_naive_strategy = False  # Set to True to use NaiveMatchingAwareStrategy
 
     for seed in SEEDS:

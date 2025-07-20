@@ -57,6 +57,7 @@ class MatchingAwareStrategy(HHStrategy):
                 return (degree, node_id)
         
         # If we reach here, we didn't find any unmatched pivot, so we return the last node considered
+        print("No suitable pivot found! returning", node_id, "with degree", degree)
         self.current_top_nodes = self._get_top_nodes_for_degree(bins, degree, node_id)
         bins.pop_node_by_id(node_id, degree)
         return (degree, node_id)
