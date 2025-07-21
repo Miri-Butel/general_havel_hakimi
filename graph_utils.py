@@ -4,6 +4,7 @@ import re
 from collections import defaultdict
 from math import floor
 import numpy as np
+from rustworkx import PyGraph
 
 def generate_graph_with_perfect_matching(n, p=0.1):
     """
@@ -101,6 +102,17 @@ def check_legal_matching(matching: List[Tuple[int, int]]):
         seen.add(u)
         seen.add(v)
     return True
+
+def edges_to_rustworkx_graph(edges: List[Tuple[int, int]]) -> PyGraph:
+    rw_graph = PyGraph()
+    node_map = {}
+    for u, v in edges:
+        if u not in node_map:
+            node_map[u] = rw_graph.add_node(u)
+        if v not in node_map:
+            node_map[v] = rw_graph.add_node(v)
+        rw_graph.add_edge(node_map[u], node_map[v], None)
+    return rw_graph
 
 
 # ***************************************************************************

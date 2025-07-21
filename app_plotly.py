@@ -1,7 +1,8 @@
 import streamlit as st
 import plotly.graph_objects as go
 import networkx as nx
-from graph_utils import degree_sequence_repr, parse_degree_sequence
+from rustworkx import max_weight_matching
+from graph_utils import degree_sequence_repr, edges_to_rustworkx_graph, parse_degree_sequence, maximum_matching_size_numpy
 from havel_hakimi_algorithm import havel_hakimi_general
 from strategies.max_degree_strategy import MaxDegreeStrategy
 from strategies.min_degree_strategy import MinDegreeStrategy
@@ -87,6 +88,7 @@ strategy_name = st.selectbox("Strategy", list(STRATEGY_MAP.keys()), index=3)
 if st.button("Generate Interactive Graph"):
     try:
         degrees = parse_degree_sequence(deg_str)
+        degrees = sorted(degrees, reverse=True)
         n = len(degrees)
         deg_seq_str = degree_sequence_repr(degrees)
         st.write(f"Degree sequence: {deg_seq_str} (n={n})")
@@ -97,10 +99,19 @@ if st.button("Generate Interactive Graph"):
             if hasattr(strategy, "get_matching_edges"):
                 matching_edges = strategy.get_matching_edges()
             matching_size = len(matching_edges) if matching_edges else 0
+            rw_graph = edges_to_rustworkx_graph(edges)
+            rw_matching = max_weight_matching(rw_graph, max_cardinality=True)
+            max_matching_size_graph = len(rw_matching)
+            max_matching_size_degseq = maximum_matching_size_numpy(degrees)
+
+            # Display matching sizes above the graph
+            st.write(f"*Matching size by algorithm:* {matching_size}")
+            st.write(f"*Maximum matching size (resulting graph):* {max_matching_size_graph}")
+            st.write(f"*Maximum matching size (degree sequence):* {max_matching_size_degseq}")
             fig = plot_graph_plotly(
                 edges,
                 matching_edges=matching_edges,
-                title=f"Graph from HH Algorithm ({strategy.__class__.__name__}), matching size: {matching_size}/{n // 2}"
+                title=f"Graph from HH Algorithm ({strategy.__class__.__name__})"
             )
             st.plotly_chart(fig, use_container_width=True)
         else:
