@@ -1,7 +1,7 @@
 import argparse
 
 from rustworkx import max_weight_matching, undirected_gnp_random_graph
-from graph_utils import degree_sequence, degree_sequence_repr, generate_graph_with_perfect_matching, parse_degree_sequence
+from graph_utils import degree_sequence, degree_sequence_repr, edges_to_rustworkx_graph, generate_graph_with_perfect_matching, maximum_matching_size_numpy, parse_degree_sequence
 from havel_hakimi_algorithm import havel_hakimi_general
 from graph_visualization import visualize_graph
 from strategies.max_degree_strategy import MaxDegreeStrategy
@@ -100,6 +100,15 @@ def run_and_visualize_havel_hakimi(degrees, strategy, axes, n):
         if hasattr(strategy, "get_matching_edges"):
             matching_edges = strategy.get_matching_edges()
         matching_size = len(matching_edges) if matching_edges else 0
+        rw_graph = edges_to_rustworkx_graph(edges)
+        rw_matching = max_weight_matching(rw_graph, max_cardinality=True)
+        max_matching_size_graph = len(rw_matching)
+        max_matching_size_degseq = maximum_matching_size_numpy(degrees)
+
+        # Display matching sizes above the graph
+        print(f"Matching size by algorithm: {matching_size}")
+        print(f"Maximum matching size (resulting graph): {max_matching_size_graph}")
+        print(f"Maximum matching size (degree sequence): {max_matching_size_degseq}")
         visualize_graph(
             edges, 
             highlight_edges=matching_edges, 
@@ -126,9 +135,10 @@ def main():
     visualize_original_graph(original_edges, matching, axes, n)
     
     # Run Havel-Hakimi algorithm and visualize result
-    run_and_visualize_havel_hakimi(degrees, strategy, axes, n)
+    success = run_and_visualize_havel_hakimi(degrees, strategy, axes, n)
     
-    plt.show()
+    if success:
+        plt.show()
 
 if __name__ == "__main__":
     # set random seed for reproducibility

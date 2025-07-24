@@ -114,6 +114,13 @@ def edges_to_rustworkx_graph(edges: List[Tuple[int, int]]) -> PyGraph:
         rw_graph.add_edge(node_map[u], node_map[v], None)
     return rw_graph
 
+def generate_power_law_degree_sequence(n: int, exponent: float, seed_i) -> List[int]:
+    """
+    Generate a degree sequence following a power law distribution.
+    """
+    rng = np.random.default_rng(seed=seed_i)
+    return sorted(rng.zipf(exponent, n).tolist(), reverse=True)
+
 
 # ***************************************************************************
 #  Implementation of Theorem 2.13 and Theorem 2.14 from the paper

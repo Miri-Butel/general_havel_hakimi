@@ -1,7 +1,9 @@
+from typing import List, Tuple
 from bins import Bins
+from hh_strategy import HHStrategy
 from strategies.max_degree_strategy import MaxDegreeStrategy
 
-def havel_hakimi_general(degrees, strategy=None):
+def havel_hakimi_general(degrees: List[int], strategy: HHStrategy) -> Tuple[bool, List[Tuple[int, int]]]:
     """
     Generalized Havel-Hakimi algorithm to check if a degree sequence is graphical.
     

@@ -83,3 +83,7 @@ class Bins:
             iterator: An iterator over degrees in descending order
         """
         return iter(sorted(self.bins.keys(), reverse=True))
+
+
+    def __str__(self) -> str:
+        return f"Bins(size={self.size}, bins={dict(sorted(self.bins.items(), reverse=True))})"
