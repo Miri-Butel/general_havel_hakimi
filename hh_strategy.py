@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Tuple
 from bins import Bins
 from pending_nodes import PendingNodes
 
@@ -7,7 +8,7 @@ class HHStrategy(ABC):
         self.pending = PendingNodes()
 
     @abstractmethod
-    def choose_pivot(self, bins: Bins):
+    def choose_pivot(self, bins: Bins) -> Tuple[int, int]:
         """Return (pivot_degree, pivot_node)"""
         pass
 

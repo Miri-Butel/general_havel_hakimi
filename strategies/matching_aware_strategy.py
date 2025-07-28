@@ -4,11 +4,14 @@ from hh_strategy import HHStrategy
 from pending_nodes import PendingNodes
 
 class MatchingAwareStrategy(HHStrategy):
-    def __init__(self):
+    def __init__(self, degrees=None):
         self.matching_nodes = set()
         self.matching_edges = list()
         self.current_top_nodes: Dict[int, int] = dict()
         self.pending = PendingNodes()
+        self.degrees = degrees
+        self.n = len(degrees) if degrees is not None else 0
+        self.perfect_matching_size = self.n // 2
 
     def choose_neighbor(self, bins: Bins, neighbor_degree: int):
         pass
@@ -26,6 +29,10 @@ class MatchingAwareStrategy(HHStrategy):
         Returns:
             Tuple[int, int]: The degree and node id of the chosen pivot.
         """
+        # To check for regular graphs
+        # if not bins.is_bi_consecutive():
+        #     print("Bins are not bi-consecutive:", bins)
+
         # Commented out lines are for choosing the node with the minimum degree (seems to give worse results)
         # best_min_degree_node = None
         # best_min_degree_top_nodes = None
@@ -46,6 +53,10 @@ class MatchingAwareStrategy(HHStrategy):
         # node_id, degree = best_min_degree_node
         # self.current_top_nodes = best_min_degree_top_nodes
         # print("No unmatched pivot found! returning", node_id, "with degree", degree)
+
+        # To check for regular graphs, that they reach rules B,C only after completing the maximum matching
+        # if len(self.matching_edges) < self.perfect_matching_size:
+        #     print("Matching size is less than maximum (perfect) matching size, and no unmatched pivot found!")
         
         for degree, node_id in bins:
             top_nodes = self._get_top_nodes_for_degree(bins, degree, node_id)

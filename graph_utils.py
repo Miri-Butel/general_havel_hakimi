@@ -69,7 +69,7 @@ def parse_degree_sequence(input_str):
         # Create a safe evaluation of the expression
         # The pattern captures: [number], followed by * and another number, or + operator
         result = []
-        pattern = r'\[(\d+)\]\s*\*\s*(\d+)'
+        pattern = r'\[(\d+)\]\s*\*?\s*(\d*)'
         
         # Split by + sign
         parts = input_str.split('+')
@@ -78,7 +78,7 @@ def parse_degree_sequence(input_str):
             match = re.match(pattern, part)
             if match:
                 value = int(match.group(1))
-                count = int(match.group(2))
+                count = int(match.group(2)) if match.group(2) else 1
                 result.extend([value] * count)
         
         return result

@@ -17,7 +17,6 @@ def ensure_dir(path):
 def run_rounds_for_np_general(StrategyClass, n, p, rounds, degseq_log, seed=None):
     degseq_log.write("n,p,round,degree_sequence,matching_size\n")
     for round_idx in range(1, rounds + 1):
-        strategy = StrategyClass()
         seed_i = seed + round_idx if seed is not None else None
         # The barabasi_albert_graph function has a bug affecting reproducibility, see https://github.com/Qiskit/rustworkx/issues/1480
         # original_graph = barabasi_albert_graph(n, p, seed=seed_i)
@@ -26,6 +25,7 @@ def run_rounds_for_np_general(StrategyClass, n, p, rounds, degseq_log, seed=None
         matching = max_weight_matching(original_graph, max_cardinality=True)
         degrees = degree_sequence(original_edges)
         deg_seq_str = degree_sequence_repr(degrees)
+        strategy = StrategyClass(degrees=degrees)
 
         _, __ = havel_hakimi_general(degrees, strategy=strategy)
         hh_matching = strategy.get_matching_edges()

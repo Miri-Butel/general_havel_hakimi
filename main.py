@@ -52,7 +52,7 @@ def get_degree_sequence(args):
         # Prompt user for degree sequence
         print("Enter degree sequence as:")
         print("  - Comma-separated list (e.g., 3,3,2,2,2,1)")
-        print("  - Python-style expression (e.g., [3]*2 + [2]*3 + [1])")
+        print("  - Python-style expression (e.g., [3]*2 + [2]*3 + [1]*2)")
         print("  - Or press Enter to use the default sequence: " + DEFAULT_DEGREE_SEQUENCE)
         deg_str = input("> ")
         if not deg_str.strip():
@@ -123,11 +123,12 @@ def run_and_visualize_havel_hakimi(degrees, strategy, axes, n):
 
 def main():
     args = parse_args()
-    strategy = STRATEGY_MAP[args.strategy]()
     
     # Get degree sequence and original graph if applicable
     degrees, original_edges, matching = get_degree_sequence(args)
-    
+
+    strategy = STRATEGY_MAP[args.strategy](degrees=degrees)
+
     # Setup visualization
     fig, axes, n, _ = setup_visualization(degrees)
     

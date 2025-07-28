@@ -34,10 +34,11 @@ def run_rounds_for_np_perfect_matching(StrategyClass, n, p, rounds, save_every,
     # with open(degseq_log_path, "w") as degseq_log:
         # degseq_log.write("n,p,round,degree_sequence,matching_size\n")
     for round_idx in range(1, rounds + 1):
-        strategy = StrategyClass()
         original_edges, matching = generate_graph_with_perfect_matching(n, p)
         degrees = degree_sequence(original_edges)
         deg_seq_str = degree_sequence_repr(degrees)
+        strategy = StrategyClass(degrees=degrees)
+        
         is_graphical, hh_edges = havel_hakimi_general(degrees, strategy=strategy)
         hh_matching = strategy.get_matching_edges()
         msize = len(hh_matching) if hh_matching else 0

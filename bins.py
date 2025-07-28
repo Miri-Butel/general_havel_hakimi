@@ -87,3 +87,27 @@ class Bins:
 
     def __str__(self) -> str:
         return f"Bins(size={self.size}, bins={dict(sorted(self.bins.items(), reverse=True))})"
+    
+    def __len__(self):
+        """
+        Return the total number of bins (distinct degrees).
+        """
+        return len(self.bins)
+
+    def is_bi_consecutive(self):
+        """
+        Check if the bins are bi-consecutive (i.e., contain at most two distinct degrees
+        that are consecutive integers).
+
+        Returns:
+            bool: True if the bins are bi-consecutive, False otherwise.
+        """
+        if not self.bins:
+            return True
+        if len(self.bins) > 2:
+            return False
+        min_degree = min(self.bins.keys())
+        max_degree = max(self.bins.keys())
+        if max_degree - min_degree > 1:  # if the degrees are not sequential/consecutive
+            return False
+        return True

@@ -1,8 +1,12 @@
-from hh_strategy import HHStrategy
-from bins import Bins
 import random
+from bins import Bins
+from hh_strategy import HHStrategy
+from pending_nodes import PendingNodes
 
 class RandomStrategy(HHStrategy):
+    def __init__(self, degrees=None):
+        self.pending = PendingNodes()
+
     def choose_pivot(self, bins: Bins):
         degree = random.choice(list(bins.bins.keys()))
         node = bins.pop_node(degree)

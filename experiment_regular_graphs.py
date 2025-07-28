@@ -9,7 +9,7 @@ def ensure_dir(path):
         os.makedirs(path)
 
 def run_regular_graph_experiment(
-    d_range=range(3, 70),
+    d_range=range(1, 70),
     n_max=500,
     log_filename="regular_graph_experiment_log.txt",
     base_dir="regular_graph_experiment_results",
@@ -26,9 +26,12 @@ def run_regular_graph_experiment(
         log_file.write("d,n,matching_size,is_perfect_matching\n")
 
         for d in d_range:
-            for n in range(2 * d + 2, n_max + 1, 2):  # n must be even and >= 2d+1
-                strategy = StrategyClass()
-                is_graphical, hh_edges = havel_hakimi_general([d] * n, strategy=strategy)
+            for n in range(d + 1, n_max + 1):  # we must have n >= d+1
+                if (d * n) % 2 != 0:  # make sure that the sum of degrees is even
+                    continue
+                degrees = [d] * n
+                strategy = StrategyClass(degrees=degrees)
+                is_graphical, hh_edges = havel_hakimi_general(degrees, strategy=strategy)
                 if not is_graphical:
                     print(f"Skipping d={d}, n={n} as it is not graphical.")
                     continue

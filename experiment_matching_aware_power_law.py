@@ -15,10 +15,10 @@ def run_rounds_for_np_general(StrategyClass, n, p, rounds, degseq_log, seed=None
     graphical_sequences_count = 0
     degseq_log.write("n,p,round,degree_sequence,matching_size\n")
     for round_idx in range(1, rounds + 1):
-        strategy = StrategyClass()
         seed_i = seed + round_idx if seed is not None else None
         degrees = generate_power_law_degree_sequence(n, p, seed_i)
         deg_seq_str = degree_sequence_repr(degrees)
+        strategy = StrategyClass(degrees=degrees)
 
         is_graphical, __ = havel_hakimi_general(degrees, strategy=strategy)
         if not is_graphical:

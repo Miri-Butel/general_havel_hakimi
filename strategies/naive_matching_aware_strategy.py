@@ -5,7 +5,7 @@ from pending_nodes import PendingNodes
 
 
 class NaiveMatchingAwareStrategy(HHStrategy):
-    def __init__(self):
+    def __init__(self, degrees=None):
         self.matching_nodes = set()
         self.matching_edges = list()
         self.pending = PendingNodes()
