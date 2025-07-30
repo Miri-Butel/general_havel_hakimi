@@ -10,10 +10,8 @@ from havel_hakimi_algorithm import havel_hakimi_general
 from graph_visualization import visualize_graph
 from strategies.matching_aware_strategy import MatchingAwareStrategy
 from strategies.naive_matching_aware_strategy import NaiveMatchingAwareStrategy
+from utils import ensure_dir
 
-def ensure_dir(path):
-    if not os.path.exists(path):
-        os.makedirs(path)
 
 def save_figure(original_edges, matching, hh_edges, hh_matching, n, p, round_idx, save_dir, deg_seq_str):
     fig, axes = plt.subplots(1, 2, figsize=(16, 6))

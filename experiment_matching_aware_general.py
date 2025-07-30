@@ -5,14 +5,12 @@ import random
 
 from rustworkx import max_weight_matching, undirected_gnp_random_graph, barabasi_albert_graph
 
+from utils import ensure_dir
 from graph_utils import check_legal_matching, degree_sequence, degree_sequence_repr, maximum_matching_size_numpy
 from havel_hakimi_algorithm import havel_hakimi_general
 from strategies.matching_aware_strategy import MatchingAwareStrategy
 from strategies.naive_matching_aware_strategy import NaiveMatchingAwareStrategy
 
-def ensure_dir(path):
-    if not os.path.exists(path):
-        os.makedirs(path)
 
 def run_rounds_for_np_general(StrategyClass, n, p, rounds, degseq_log, seed=None):
     degseq_log.write("n,p,round,degree_sequence,matching_size\n")

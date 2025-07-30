@@ -3,10 +3,8 @@ from datetime import datetime
 from havel_hakimi_algorithm import havel_hakimi_general
 from strategies.matching_aware_strategy import MatchingAwareStrategy
 from strategies.naive_matching_aware_strategy import NaiveMatchingAwareStrategy
+from utils import ensure_dir
 
-def ensure_dir(path):
-    if not os.path.exists(path):
-        os.makedirs(path)
 
 def run_regular_graph_experiment(
     d_range=range(1, 70),
